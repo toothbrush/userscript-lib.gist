@@ -43,7 +43,7 @@ function registerMenu(label, fn) {
 // UTF-8-safe base64. The Contents API ships bodies base64 with newlines
 // every 60 chars; strip them before decoding.
 function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
-function b64decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g, ""))); }
+function b64decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g, "")))); }
 
 // A comment is a whole line starting with # or follows whitespace, so a
 // `tag#id` selector survives and `name  # note` loses the note.
