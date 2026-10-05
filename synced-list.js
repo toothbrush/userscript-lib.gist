@@ -5,7 +5,7 @@
  *
  * Loaded with @require. Hosts cache a @require by URL (iOS Userscripts
  * never re-checks one), so always require a tagged URL:
- *   @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v3/synced-list.js
+ *   @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v4/synced-list.js
  * A change here is a new tag and a bumped @require in each script.
  *
  * Everything is a plain function or var so it lands in the script's scope

@@ -3,7 +3,7 @@
 // @namespace    https://github.com/toothbrush/userscript-lib.gist
 // @updateURL    https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/main/require-probe.user.js
 // @downloadURL  https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/main/require-probe.user.js
-// @version      0.3
+// @version      0.4
 // @description  Shows whether @require and GM XHR work on this host.
 // @author       toothbrush
 // @match        https://example.com/*
@@ -15,7 +15,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
 // @connect      raw.githubusercontent.com
-// @require      https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v3/synced-list.js
+// @require      https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v4/synced-list.js
 // @run-at       document-idle
 // ==/UserScript==
 

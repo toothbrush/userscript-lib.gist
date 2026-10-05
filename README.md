@@ -9,7 +9,7 @@ Tampermonkey, iOS Userscripts and webmacs.
 
 ## Use
 
-    // @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v3/synced-list.js
+    // @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v4/synced-list.js
 
     var file = new SyncedFile({ repo: "toothbrush/bow-killfile.gist", file: "killfile.txt",
                                 cacheKey: "killfile_cache", tag: "bow" });
@@ -28,6 +28,17 @@ the async read; the token stays sync, so writes need sync storage.
 Also exported: `gmGet`, `gmSet`, `gmDelete`, `gmXhr`, `registerMenu`,
 `stripComment`, `parseLines`, `b64encode`, `b64decode`, `showToast`,
 `hideToast`.
+
+## no-hscroll.js
+
+Vertical scrolling only, however wide the page gets: html clips
+sideways, body is `overflow-x: clip`, `touch-action: pan-y` stops iOS
+starting a horizontal pan (so no elastic bounce), and a scroll listener
+snaps `scrollX` back to 0. Self-running; one line opts a script in:
+
+    // @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v4/no-hscroll.js
+
+Scrolling inside a wide `<pre>` or a carousel still works.
 
 ## Versioning
 
