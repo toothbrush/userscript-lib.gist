@@ -9,7 +9,7 @@ Tampermonkey, iOS Userscripts and webmacs.
 
 ## Use
 
-    // @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v1/synced-list.js
+    // @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v2/synced-list.js
 
     var file = new SyncedFile({ repo: "toothbrush/bow-killfile.gist", file: "killfile.txt",
                                 cacheKey: "killfile_cache", tag: "bow" });

@@ -5,14 +5,16 @@
  *
  * Loaded with @require. Hosts cache a @require by URL (iOS Userscripts
  * never re-checks one), so always require a tagged URL:
- *   @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v1/synced-list.js
+ *   @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v2/synced-list.js
  * A change here is a new tag and a bumped @require in each script.
  *
  * Everything is a plain function or var so it lands in the script's scope
  * on every host (Tampermonkey sandbox, iOS Userscripts, webmacs).
  */
 
-var SYNCED_LIST_VERSION = "1";
+var SYNCED_LIST_VERSION = "2";
+// On every element the library adds, so other scripts can skip them.
+var SYNCED_UI_CLASS = "pixelfont-ignore";
 
 /* ---------- GM API shims ----------
  * Hosts vary: iOS Userscripts has GM_xmlhttpRequest but only the async GM.*
@@ -64,6 +66,7 @@ var syncedToastEl = null, syncedToastTimer = null;
 function showToast(msg, actionLabel, actionFn) {
     if (!syncedToastEl) {
         syncedToastEl = document.createElement("div");
+        syncedToastEl.classList.add(SYNCED_UI_CLASS);
         syncedToastEl.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);" +
             "z-index:2147483647;background:#222;color:#fff;padding:10px 14px;border-radius:6px;" +
             "font:14px/1.3 sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4);max-width:90vw;";
@@ -240,14 +243,20 @@ SyncedFile.prototype.removeLine = function (match, message, cb) {
 };
 
 // Tampermonkey menu entry (webmacs: :userscript-menu) to enter or clear the
-// PAT. Validated once at entry, never on page load.
-SyncedFile.prototype.registerTokenMenu = function (afterSave) {
+// PAT. Validated once at entry, never on page load. afterSave runs once a
+// token checks out, afterClear when one is removed.
+SyncedFile.prototype.registerTokenMenu = function (afterSave, afterClear) {
     var self = this;
     registerMenu("Set GitHub token…", function () {
         var t = prompt("Fine-grained PAT, scoped to this repo's Contents: read/write ONLY. Blank to clear:", self.token());
         if (t === null) return;
         var trimmed = t.trim();
-        if (!trimmed) { gmDelete(self.tokenKey); alert("Token cleared. Write features hidden on this device."); return; }
+        if (!trimmed) {
+            gmDelete(self.tokenKey);
+            if (afterClear) afterClear();
+            alert("Token cleared. Write features hidden on this device.");
+            return;
+        }
         gmSet(self.tokenKey, trimmed);
         self.api("GET", null, function (err, file) {
             if (err) { alert("⚠ Token saved but validation failed: " + err.message); return; }
