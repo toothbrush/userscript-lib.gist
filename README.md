@@ -9,7 +9,7 @@ Tampermonkey, iOS Userscripts and webmacs.
 
 ## Use
 
-    // @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v2/synced-list.js
+    // @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v3/synced-list.js
 
     var file = new SyncedFile({ repo: "toothbrush/bow-killfile.gist", file: "killfile.txt",
                                 cacheKey: "killfile_cache", tag: "bow" });
@@ -19,6 +19,11 @@ Tampermonkey, iOS Userscripts and webmacs.
     file.mutate("message", function (text) { return newText; }, cb);  // your own transform
     file.registerTokenMenu();
     if (file.canWrite()) { /* show mute buttons */ }
+
+Storage: sync `GM_getValue` where a host has it, else the async
+`GM.getValue` family (declare `@grant GM.getValue`, `GM.setValue`,
+`GM.deleteValue`; iOS Userscripts has only those). `load` waits for
+the async read; the token stays sync, so writes need sync storage.
 
 Also exported: `gmGet`, `gmSet`, `gmDelete`, `gmXhr`, `registerMenu`,
 `stripComment`, `parseLines`, `b64encode`, `b64decode`, `showToast`,

@@ -3,16 +3,19 @@
 // @namespace    https://github.com/toothbrush/userscript-lib.gist
 // @updateURL    https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/main/require-probe.user.js
 // @downloadURL  https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/main/require-probe.user.js
-// @version      0.2
+// @version      0.3
 // @description  Shows whether @require and GM XHR work on this host.
 // @author       toothbrush
 // @match        https://example.com/*
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM.getValue
+// @grant        GM.setValue
+// @grant        GM.deleteValue
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
 // @connect      raw.githubusercontent.com
-// @require      https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v2/synced-list.js
+// @require      https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v3/synced-list.js
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -48,6 +51,10 @@
         banner.style.background = "#060";
         banner.textContent = "@require OK on " + host + ": synced-list v" + SYNCED_LIST_VERSION +
             "; storage: " + storage + "; GM XHR OK: killfile.txt has " + parseLines(text).length + " names";
+        gmGetAsync("probe_cache_ts", 0, function (ts) {
+            banner.textContent += ts ? "; cache round trip OK" : "; cache MISSING";
+            if (!ts) banner.style.background = "#a60";
+        });
         showToast("All good on " + host);
     }, true);
 })();

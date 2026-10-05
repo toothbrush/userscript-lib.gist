@@ -5,31 +5,53 @@
  *
  * Loaded with @require. Hosts cache a @require by URL (iOS Userscripts
  * never re-checks one), so always require a tagged URL:
- *   @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v2/synced-list.js
+ *   @require https://raw.githubusercontent.com/toothbrush/userscript-lib.gist/v3/synced-list.js
  * A change here is a new tag and a bumped @require in each script.
  *
  * Everything is a plain function or var so it lands in the script's scope
  * on every host (Tampermonkey sandbox, iOS Userscripts, webmacs).
  */
 
-var SYNCED_LIST_VERSION = "2";
+var SYNCED_LIST_VERSION = "3";
 // On every element the library adds, so other scripts can skip them.
 var SYNCED_UI_CLASS = "pixelfont-ignore";
 
 /* ---------- GM API shims ----------
  * Hosts vary: iOS Userscripts has GM_xmlhttpRequest but only the async GM.*
- * storage and no menu. A missing storage API means "no cache on this device",
- * never a ReferenceError that kills the script. */
+ * storage (with @grant GM.getValue and friends) and no menu. Reads that can
+ * wait go through gmGetAsync, which is synchronous where sync storage
+ * exists; writes land wherever storage is. With neither, a missing storage
+ * API means "no cache on this device", never a ReferenceError. */
+
+function gmHasSync() { return typeof GM_getValue === "function"; }
+function gmHasAsync() { return typeof GM !== "undefined" && !!GM && typeof GM.getValue === "function"; }
 
 function gmGet(key, def) {
-    try { if (typeof GM_getValue === "function") return GM_getValue(key, def); } catch (e) {}
+    try { if (gmHasSync()) return GM_getValue(key, def); } catch (e) {}
     return def;
 }
+// cb(value) now when sync storage exists, later from GM.getValue, else def.
+function gmGetAsync(key, def, cb) {
+    if (gmHasSync()) { cb(gmGet(key, def)); return; }
+    if (gmHasAsync()) {
+        Promise.resolve(GM.getValue(key, def)).then(
+            function (v) { cb(v === undefined ? def : v); },
+            function () { cb(def); });
+        return;
+    }
+    cb(def);
+}
 function gmSet(key, val) {
-    try { if (typeof GM_setValue === "function") GM_setValue(key, val); } catch (e) {}
+    try {
+        if (typeof GM_setValue === "function") GM_setValue(key, val);
+        else if (typeof GM !== "undefined" && GM && typeof GM.setValue === "function") GM.setValue(key, val);
+    } catch (e) {}
 }
 function gmDelete(key) {
-    try { if (typeof GM_deleteValue === "function") GM_deleteValue(key); } catch (e) {}
+    try {
+        if (typeof GM_deleteValue === "function") GM_deleteValue(key);
+        else if (typeof GM !== "undefined" && GM && typeof GM.deleteValue === "function") GM.deleteValue(key);
+    } catch (e) {}
 }
 function gmXhr(details) {
     if (typeof GM_xmlhttpRequest === "function") return GM_xmlhttpRequest(details);
@@ -123,11 +145,16 @@ SyncedFile.prototype.stale = function () {
     return Date.now() - gmGet(this.cacheKey + "_ts", 0) >= this.ttlMs;
 };
 
-// apply(text) runs now with the cached text, so the page is right at once,
-// and again when fresh text lands.
+// apply(text) runs with the cached text, now where storage is synchronous
+// so the page is right at once, and again when fresh text lands.
 SyncedFile.prototype.load = function (apply) {
-    apply(this.cached());
-    this.refresh(apply, false);
+    var self = this;
+    gmGetAsync(this.cacheKey, "", function (cached) {
+        gmGetAsync(self.cacheKey + "_ts", 0, function (ts) {
+            apply(cached);
+            if (Date.now() - ts >= self.ttlMs) self.refresh(apply, true);
+        });
+    });
 };
 
 // Fetch when stale, or always with force. apply(text) on success.
